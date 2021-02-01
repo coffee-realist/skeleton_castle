@@ -44,7 +44,7 @@ def start_screen():
                     if 1070 <= x <= 1230 and 225 <= y <= 260:
                         print('game started')
                     elif 1090 <= x <= 1205 and 450 <= y <= 485:
-                        return
+                        terminate()
                     elif 1050 <= x <= 1230 and 375 <= y <= 410:
                         screen = pygame.display.set_mode(ABOUT_WINDOW_SIZE)
                         background = pygame.transform.scale(load_image('about.jpg'), ABOUT_WINDOW_SIZE)
