@@ -74,6 +74,7 @@ if __name__ == '__main__':
     coords = [50, 50]
     forward = False
     back = False
+    jump = False
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -94,6 +95,7 @@ if __name__ == '__main__':
                         hero = hero_jump_right
                     else:
                         hero = hero_jump_left
+                    jump = True
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     hero = hero_stand_left
@@ -102,19 +104,45 @@ if __name__ == '__main__':
                     hero = hero_stand_right
                     forward = False
         if hero == hero_jump_right:
-            jump_cnt += 1
+            print(jump_cnt)
+            if jump_cnt == 2 or jump_cnt == 1:
+                coords[1] -= 16
+            elif jump_cnt == 5 or jump_cnt == 4:
+                coords[1] += 16
             if jump_cnt == 5:
                 jump_cnt = 0
-                hero = hero_stand_right
+                if forward:
+                    hero = hero_right
+                elif back:
+                    hero = hero_left
+                else:
+                    hero = hero_stand_right
+                jump_cnt = 0
+                jump = False
+            jump_cnt += 1
         if hero == hero_jump_left:
-            jump_cnt += 1
+            print(jump_cnt)
+            if jump_cnt == 2 or jump_cnt == 1:
+                coords[1] -= 16
+            elif jump_cnt == 5 or jump_cnt == 4:
+                coords[1] += 16
             if jump_cnt == 5:
+                if forward:
+                    hero = hero_right
+                elif back:
+                    hero = hero_left
+                else:
+                    hero = hero_stand_left
                 jump_cnt = 0
-                hero = hero_stand_left
+                jump = False
+            jump_cnt += 1
+
+
         if forward:
-            coords[0] += 5
+            coords[0] += 10
         elif back:
-            coords[0] -= 5
+            coords[0] -= 10
+        print(coords)
 
 
 
