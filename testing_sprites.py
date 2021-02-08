@@ -6,7 +6,7 @@ INTRO_WINDOW_SIZE = 1280, 720
 ABOUT_WINDOW_SIZE = 1023, 649
 GAME_WINDOW_SIZE = 1280, 720
 WINDOW_STATE = 0
-FPS = 50
+FPS = 10
 image = pygame.Surface([60, 65])
 all_sprites = pygame.sprite.Group()
 
@@ -24,9 +24,13 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     else:
-            image = image.convert_alpha()
+        image = image.convert_alpha()
     return image
 
+
+def terminate():
+    pygame.quit()
+    sys.exit()
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -54,12 +58,24 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 if __name__ == '__main__':
     pygame.init()
-
+    clock = pygame.time.Clock()
     size = width, height = 500, 500
     screen = pygame.display.set_mode(size)
     running = True
-    hero = AnimatedSprite(load_image("heroes/hero_run.png"), 8, 1, 6, 65)
+    hero_dead = AnimatedSprite(load_image("heroes/hero_dead.png"), 5, 1, 60, 65)
+    hero_run = AnimatedSprite(load_image("heroes/hero_run.png"), 8, 1, 60, 65)
+    hero = hero_run
     while running:
-        pass
-
-
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if hero == hero_dead:
+                    hero = hero_run
+                else:
+                    hero = hero_dead
+        hero.update()
+        screen.fill('black')
+        screen.blit(hero.image, (50, 50))
+        pygame.display.flip()
+        clock.tick(FPS)
