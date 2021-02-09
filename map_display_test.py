@@ -23,26 +23,34 @@ if __name__ == '__main__':
             for block in row:
                 current_object = -1
                 if block == 1:
-                    pass
+                    block_name = 'down_blue_block.png'
                 elif block == 2:
-                    pass
+                    block_name = 'left_blue_block.png'
                 elif block == 3:
-                    pass
+                    block_name = 'right_blue_block.png'
                 elif block == 4:
-                    pass
+                    block_name = 'up_blue_block.png'
                 elif block == 5:
-                    pass
+                    block_name = 'white-blue_block.png'
                 elif block == 6:
-                    pass
+                    block_name = 'down_spikes_block.png'
                 elif block == 7:
-                    pass
+                    block_name = 'up_spikes_block.png'
                 elif block == 8:
-                    pass
+                    block_name = 'right_spikes_block.png'
                 elif block == 9:
-                    pass
+                    block_name = 'left_spikes_block.png'
                 elif block == '#':
-                    pass
+                    block_name = 'strange_splited_block.png'
                 elif block == 'f':
-                    pass
+                    block_name = 'flag.png'
                 elif block == 's':
-                    pass
+                    block_name = 'gray_brick_block.png'
+                elif block == 'l':
+                    block_name = 'left_spikes_block_2.png'
+                elif block == 'r':
+                    block_name = 'right_spikes_block_2.png'
+                elif block == 'u':
+                    block_name = 'up_spikes_block_2.png'
+                elif block == 'd':
+                    block_name = 'down_spikes_block_2.png'
