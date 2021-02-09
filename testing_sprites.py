@@ -62,12 +62,12 @@ if __name__ == '__main__':
     size = width, height = 500, 500
     screen = pygame.display.set_mode(size)
     running = True
-    hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, 60, 65)
-    hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, 60, 65)
-    hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, 60, 65)
-    hero_stand_left = AnimatedSprite(load_image("heroes/hero_stand_left.png"), 1, 1, 60, 65)
-    hero_jump_right = AnimatedSprite(load_image("heroes/hero_jump_right.png"), 5, 1, 60, 65)
-    hero_jump_left = AnimatedSprite(load_image("heroes/hero_jump_left.png"), 5, 1, 60, 65)
+    hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, 0, 0)
+    hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, 0, 0)
+    hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, 0, 0)
+    hero_stand_left = AnimatedSprite(load_image("heroes/hero_stand_left.png"), 1, 1, 0, 0)
+    hero_jump_right = AnimatedSprite(load_image("heroes/hero_jump_right.png"), 5, 1, 0, 0)
+    hero_jump_left = AnimatedSprite(load_image("heroes/hero_jump_left.png"), 5, 1, 0, 0)
     hero = hero_stand_right
     hero_vector = 'right'
     jump_cnt = 0
@@ -81,15 +81,15 @@ if __name__ == '__main__':
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT and hero != hero_jump_right:
-                        hero = hero_left
-                        hero_vector = 'left'
-                        forward  = False
-                        back = True
+                    hero = hero_left
+                    hero_vector = 'left'
+                    forward = False
+                    back = True
                 elif event.key == pygame.K_RIGHT and hero != hero_jump_right:
-                        hero = hero_right
-                        hero_vector = 'right'
-                        forward = True
-                        back = False
+                    hero = hero_right
+                    hero_vector = 'right'
+                    forward = True
+                    back = False
                 elif event.key == pygame.K_UP:
                     if hero_vector == 'right':
                         hero = hero_jump_right
@@ -137,15 +137,11 @@ if __name__ == '__main__':
                 jump = False
             jump_cnt += 1
 
-
         if forward:
             coords[0] += 10
         elif back:
             coords[0] -= 10
         print(coords)
-
-
-
 
         hero.update()
         screen.fill('black')
