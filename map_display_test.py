@@ -3,7 +3,7 @@ import sys
 import os
 
 all_sprites = pygame.sprite.Group()
-FPS = 10
+FPS = 60
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -38,6 +38,15 @@ class Block(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.coords, self.size)
 
 
+class Background(pygame.sprite.Sprite):
+    def __init__(self, image, coords, size):
+        super(Background, self).__init__()
+        self.image = image
+        self.coords = coords
+        self.size = size
+        self.rect = pygame.Rect(self.coords, self.size)
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
@@ -64,15 +73,16 @@ class Player(pygame.sprite.Sprite):
 class Camera:
     def __init__(self):
         self.dx = 0
-        self.dy = size[1]
+        self.dy = 0
+        self.start_coords = 960, 900
 
     def apply(self, obj):
-        obj.rect.x += self.dx
+        obj.rect.x += self.dx * 10
         obj.rect.y += self.dy
 
     def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
+        self.dx = -(target.rect.x + self.start_coords[0] - width // 2)
+        self.dy = -(target.rect.y + self.start_coords[1] - height // 2)
 
 
 def terminate():
@@ -101,85 +111,87 @@ if __name__ == '__main__':
     size = width, height = 2528, 1728
     screen = pygame.display.set_mode(size)
     background = pygame.transform.scale(load_image('background.jpg'), size)
-    screen.blit(background, (0, 0))
     clock = pygame.time.Clock()
-    hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, 0, 0)
-    hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, 0, 0)
-    hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, 0, 0)
-    hero_stand_left = AnimatedSprite(load_image("heroes/hero_stand_left.png"), 1, 1, 0, 0)
-    hero_jump_right = AnimatedSprite(load_image("heroes/hero_jump_right.png"), 5, 1, 0, 0)
-    hero_jump_left = AnimatedSprite(load_image("heroes/hero_jump_left.png"), 5, 1, 0, 0)
+    display_size = 1920, 1080
+    hero_coords = [0, 300]
+    hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
+    hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
+    hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
+    hero_stand_left = AnimatedSprite(load_image("heroes/hero_stand_left.png"), 1, 1, hero_coords[0], hero_coords[1])
+    hero_jump_right = AnimatedSprite(load_image("heroes/hero_jump_right.png"), 5, 1, hero_coords[0], hero_coords[1])
+    hero_jump_left = AnimatedSprite(load_image("heroes/hero_jump_left.png"), 5, 1, hero_coords[0], hero_coords[1])
     hero = hero_stand_right
     hero_vector = 'right'
     jump_cnt = 0
-    coords = [50, 50]
     forward = False
     back = False
     jump = False
-    blocks = pygame.sprite.Group()
     file = open('data/map.txt')
     text = file.read()
-    for i, row in enumerate(text.split('\n')):
-        for j, block in enumerate(row):
-            block_name = 'something_wrong.png'
-            block_size = ['?', '?']
-            current_object = -1
-            print(block)
-            if block in ['0', 'c', 'k']:
-                continue
-            elif block == '1':
-                block_name = 'down_blue_block.png'
-                block_size = [32, 32]
-            elif block == '2':
-                block_name = 'left_blue_block.png'
-                block_size = [32, 32]
-            elif block == '3':
-                block_name = 'right_blue_block.png'
-                block_size = [32, 32]
-            elif block == '4':
-                block_name = 'up_blue_block.png'
-                block_size = [32, 32]
-            elif block == '5':
-                block_name = 'white-blue_block.png'
-                block_size = [32, 32]
-            elif block == '6':
-                block_name = 'down_spikes_block.png'
-                block_size = [32, 34]
-            elif block == '7':
-                block_name = 'up_spikes_block.png'
-                block_size = [32, 34]
-            elif block == '8':
-                block_name = 'right_spikes_block.png'
-                block_size = [34, 32]
-            elif block == '9':
-                block_name = 'left_spikes_block.png'
-                block_size = [34, 32]
-            elif block == '#':
-                block_name = 'strange_splited_blue_block.png'
-                block_size = [32, 32]
-            elif block == 'f':
-                block_name = 'flag.png'
-                block_size = [28, 28]
-            elif block == 's':
-                block_name = 'gray_brick_block.png'
-                block_size = [32, 32]
-            elif block == 'l':
-                block_name = 'left_spikes_block_2.png'
-                block_size = [34, 32]
-            elif block == 'r':
-                block_name = 'right_spikes_block_2.png'
-                block_size = [34, 32]
-            elif block == 'u':
-                block_name = 'up_spikes_block_2.png'
-                block_size = [32, 34]
-            elif block == 'd':
-                block_name = 'down_spikes_block_2.png'
-                block_size = [32, 34]
-            block_pic = pygame.transform.scale(load_image('blocks\\' + block_name), block_size)
-            blocks.add(Block(block_pic, (j * 32, i * 32), block_size))
+
     camera = Camera()
     running = True
     while running:
+        blocks = pygame.sprite.Group()
+        background_sprite = Background(background, (0, 0), size)
+        for i, row in enumerate(text.split('\n')):
+            for j, block in enumerate(row):
+                block_name = 'something_wrong.png'
+                block_size = ['?', '?']
+                current_object = -1
+                print(block)
+                if block in ['0', 'c', 'k']:
+                    continue
+                elif block == '1':
+                    block_name = 'down_blue_block.png'
+                    block_size = [32, 32]
+                elif block == '2':
+                    block_name = 'left_blue_block.png'
+                    block_size = [32, 32]
+                elif block == '3':
+                    block_name = 'right_blue_block.png'
+                    block_size = [32, 32]
+                elif block == '4':
+                    block_name = 'up_blue_block.png'
+                    block_size = [32, 32]
+                elif block == '5':
+                    block_name = 'white-blue_block.png'
+                    block_size = [32, 32]
+                elif block == '6':
+                    block_name = 'down_spikes_block.png'
+                    block_size = [32, 34]
+                elif block == '7':
+                    block_name = 'up_spikes_block.png'
+                    block_size = [32, 34]
+                elif block == '8':
+                    block_name = 'right_spikes_block.png'
+                    block_size = [34, 32]
+                elif block == '9':
+                    block_name = 'left_spikes_block.png'
+                    block_size = [34, 32]
+                elif block == '#':
+                    block_name = 'strange_splited_blue_block.png'
+                    block_size = [32, 32]
+                elif block == 'f':
+                    block_name = 'flag.png'
+                    block_size = [28, 28]
+                elif block == 's':
+                    block_name = 'gray_brick_block.png'
+                    block_size = [32, 32]
+                elif block == 'l':
+                    block_name = 'left_spikes_block_2.png'
+                    block_size = [34, 32]
+                elif block == 'r':
+                    block_name = 'right_spikes_block_2.png'
+                    block_size = [34, 32]
+                elif block == 'u':
+                    block_name = 'up_spikes_block_2.png'
+                    block_size = [32, 34]
+                elif block == 'd':
+                    block_name = 'down_spikes_block_2.png'
+                    block_size = [32, 34]
+                block_pic = pygame.transform.scale(load_image('blocks\\' + block_name), block_size)
+                blocks.add(Block(block_pic, (j * 32, i * 32), block_size))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -208,13 +220,12 @@ if __name__ == '__main__':
                     hero = hero_stand_right
                     forward = False
 
-
         if hero == hero_jump_right:
             print(jump_cnt)
             if jump_cnt == 2 or jump_cnt == 1:
-                hero.rect.y -= 16
+                hero_coords[1] -= 16
             elif jump_cnt == 5 or jump_cnt == 4:
-                hero.rect.y += 16
+                hero_coords[1] += 16
             if jump_cnt == 5:
                 jump_cnt = 0
                 if forward:
@@ -229,9 +240,9 @@ if __name__ == '__main__':
         if hero == hero_jump_left:
             print(jump_cnt)
             if jump_cnt == 2 or jump_cnt == 1:
-                hero.rect.y -= 16
+                hero_coords[1] -= 16
             elif jump_cnt == 5 or jump_cnt == 4:
-                hero.rect.y += 16
+                hero_coords[1] += 16
             if jump_cnt == 5:
                 if forward:
                     hero = hero_right
@@ -244,18 +255,22 @@ if __name__ == '__main__':
             jump_cnt += 1
 
         if forward:
-            hero.rect.x += 10
+            hero_coords[0] += 2
         elif back:
-            hero.rect.x -= 10
-        print(hero.rect.x, hero.rect.y)
+            hero_coords[0] -= 2
+        hero.rect.x = hero_coords[0]
+        hero.rect.y = hero_coords[1]
+        screen.fill((0, 0, 0))
         camera.update(hero)
+        camera.apply(background_sprite)
+        screen.blit(pygame.transform.scale(background_sprite.image,
+                                           background_sprite.rect.size),
+                    (background_sprite.rect.x, background_sprite.rect.y))
         for block in blocks:
             camera.apply(block)
             current_block = pygame.transform.scale(block.image, block.rect.size)
             screen.blit(current_block, (block.rect.x, block.rect.y))
         hero.update()
-        screen.blit(hero.image, (hero.rect.x + width//2, hero.rect.y + height//2))
+        screen.blit(hero.image, (hero.rect.x + width // 2, hero.rect.y + height // 2))
         pygame.display.flip()
         clock.tick(FPS)
-
-
