@@ -3,7 +3,7 @@ import sys
 import os
 
 all_sprites = pygame.sprite.Group()
-FPS = 60
+FPS = 100
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -74,10 +74,10 @@ class Camera:
     def __init__(self):
         self.dx = 0
         self.dy = 0
-        self.start_coords = 960, 900
+        self.start_coords = 1860, 768
 
     def apply(self, obj):
-        obj.rect.x += self.dx * 10
+        obj.rect.x += self.dx
         obj.rect.y += self.dy
 
     def update(self, target):
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     background = pygame.transform.scale(load_image('background.jpg'), size)
     clock = pygame.time.Clock()
     display_size = 1920, 1080
-    hero_coords = [0, 300]
+    hero_coords = [-900, 432]
     hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     jump = False
     file = open('data/map.txt')
     text = file.read()
-
+    speed = 684
     camera = Camera()
     running = True
     while running:
@@ -255,11 +255,11 @@ if __name__ == '__main__':
             jump_cnt += 1
 
         if forward:
-            hero_coords[0] += 2
+            hero_coords[0] += speed / FPS
         elif back:
-            hero_coords[0] -= 2
-        hero.rect.x = hero_coords[0]
-        hero.rect.y = hero_coords[1]
+            hero_coords[0] -= speed / FPS
+        hero.rect.x = int(hero_coords[0])
+        hero.rect.y = int(hero_coords[1])
         screen.fill((0, 0, 0))
         camera.update(hero)
         camera.apply(background_sprite)
@@ -272,5 +272,5 @@ if __name__ == '__main__':
             screen.blit(current_block, (block.rect.x, block.rect.y))
         hero.update()
         screen.blit(hero.image, (hero.rect.x + width // 2, hero.rect.y + height // 2))
+        clock.tick(FPS * 8)
         pygame.display.flip()
-        clock.tick(FPS)
