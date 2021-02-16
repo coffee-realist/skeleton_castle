@@ -272,5 +272,6 @@ if __name__ == '__main__':
             screen.blit(current_block, (block.rect.x, block.rect.y))
         hero.update()
         screen.blit(hero.image, (hero.rect.x + width // 2, hero.rect.y + height // 2))
+        screen.blit(pygame.transform.scale(load_image('blocks\shadows.png'), size), (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
         clock.tick(FPS * 8)
         pygame.display.flip()
