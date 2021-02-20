@@ -1,6 +1,8 @@
 import pygame
 import sys
 import os
+from math import ceil
+
 
 all_sprites = pygame.sprite.Group()
 FPS = 100
@@ -30,21 +32,21 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class Block(pygame.sprite.Sprite):
-    def __init__(self, image, coords, size):
+    def __init__(self, image, default_coords, size):
         super(Block, self).__init__(blocks)
         self.image = image
-        self.coords = coords
+        self.default_coords = default_coords
         self.size = size
-        self.rect = pygame.Rect(self.coords, self.size)
+        self.rect = pygame.Rect(self.default_coords, self.size)
 
 
 class Background(pygame.sprite.Sprite):
-    def __init__(self, image, coords, size):
+    def __init__(self, image, default_coords, size):
         super(Background, self).__init__()
         self.image = image
-        self.coords = coords
+        self.default_coords = default_coords
         self.size = size
-        self.rect = pygame.Rect(self.coords, self.size)
+        self.rect = pygame.Rect(self.default_coords, self.size)
 
 
 class Player(pygame.sprite.Sprite):
@@ -71,18 +73,21 @@ class Player(pygame.sprite.Sprite):
 
 
 class Camera:
+    # Зададим начальный сдвиг камеры
     def __init__(self):
         self.dx = 0
         self.dy = 0
-        self.start_coords = 1860, 768
 
+    # Сдвинуть объект obj на смещение камеры
     def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
+        obj.rect.x = obj.default_coords[0] + self.dx // 2
+        obj.rect.y = obj.default_coords[1] + self.dy // 2
+        return obj.rect.x, obj.rect.y
 
+    # Позиционировать камеру на объекте target
     def update(self, target):
-        self.dx = -(target.rect.x + self.start_coords[0] - width // 2)
-        self.dy = -(target.rect.y + self.start_coords[1] - height // 2)
+        self.dx = (-target.rect.centerx + width // 2)
+        self.dy = (-target.rect.centery + height // 2)
 
 
 def terminate():
@@ -108,13 +113,12 @@ def load_image(name, color_key=None):
 
 if __name__ == '__main__':
     pygame.init()
-    display_size = pygame.display.Info().current_w, pygame.display.Info().current_h
-    size = width, height = 2528, 1728
-    screen = pygame.display.set_mode(size)
-    background = pygame.transform.scale(load_image('background.jpg'), size)
+    display_size = width, height = pygame.display.Info().current_w, pygame.display.Info().current_h
+    field_size = 2528, 1728
+    screen = pygame.display.set_mode((1500, 1000))
+    background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
-    print(display_size)
-    hero_coords = [-900, 432]
+    hero_coords = [0, 0]
     hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
@@ -129,7 +133,7 @@ if __name__ == '__main__':
     jump = False
     file = open('data/map.txt')
     text = file.read()
-    speed = 684
+    speed = 420
     camera = Camera()
     running = True
     blocks = pygame.sprite.Group()
@@ -138,9 +142,9 @@ if __name__ == '__main__':
             block_name = 'something_wrong.png'
             block_size = ['?', '?']
             current_object = -1
-            print(block)
             if block in ['0', 'c', 'k']:
-                continue
+                block_name = 0
+                block_size = [0, 0]
             elif block == '1':
                 block_name = 'down_blue_block.png'
                 block_size = [32, 32]
@@ -189,10 +193,14 @@ if __name__ == '__main__':
             elif block == 'd':
                 block_name = 'down_spikes_block_2.png'
                 block_size = [32, 34]
-            block_pic = pygame.transform.scale(load_image('blocks\\' + block_name), block_size)
+            if block_name:
+                block_pic = pygame.transform.scale(load_image('blocks\\' + block_name), block_size)
+            else:
+                block_pic = 0
             blocks.add(Block(block_pic, (j * 32, i * 32), block_size))
+    print(blocks.sprites()[8 * 80 + 2].rect)
     while running:
-        background_sprite = Background(background, (0, 0), size)
+        background_sprite = Background(background, (0, 0), field_size)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -213,6 +221,25 @@ if __name__ == '__main__':
                     else:
                         hero = hero_jump_left
                     jump = True
+                for block in blocks:
+                    print(hero_coords)
+                    if pygame.sprite.collide_rect(hero, block): # если есть пересечение платформы с игроком
+                        if hero_coords[0] > block.rect.x:
+                            back = False
+                        elif hero_coords[0] < block.rect.x:
+                            forward = False
+                        elif hero_coords[0] > block.rect.x:
+                            pass
+                        elif hero_coords[0] > block.rect.x:
+                            pass
+                        elif hero_coords[0] > block.rect.x:
+                            pass
+                        elif hero_coords[0] > block.rect.x:
+                            pass
+                        elif hero_coords[0] > block.rect.x:
+                            pass
+                        elif hero_coords[0] > block.rect.x:
+                            pass
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     hero = hero_stand_left
@@ -220,13 +247,22 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_RIGHT:
                     hero = hero_stand_right
                     forward = False
+        # cell_x = ceil(hero_coords[0] / 32) + 16
+        # cell_y = ceil(hero_coords[1]  / 32) + 10
+        # bottom = blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.w, \
+        #          blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.h
+        # top = blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.w, \
+        #       blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.h
+        # print(bottom, top)
+
+
+
 
         if hero == hero_jump_right:
-            print(jump_cnt)
             if jump_cnt == 2 or jump_cnt == 1:
-                hero_coords[1] -= 16
+                hero_coords[1] -= 32
             elif jump_cnt == 5 or jump_cnt == 4:
-                hero_coords[1] += 16
+                hero_coords[1] += 32
             if jump_cnt == 5:
                 jump_cnt = 0
                 if forward:
@@ -239,11 +275,10 @@ if __name__ == '__main__':
                 jump = False
             jump_cnt += 1
         if hero == hero_jump_left:
-            print(jump_cnt)
             if jump_cnt == 2 or jump_cnt == 1:
-                hero_coords[1] -= 16
+                hero_coords[1] -= 32
             elif jump_cnt == 5 or jump_cnt == 4:
-                hero_coords[1] += 16
+                hero_coords[1] += 32
             if jump_cnt == 5:
                 if forward:
                     hero = hero_right
@@ -255,25 +290,29 @@ if __name__ == '__main__':
                 jump = False
             jump_cnt += 1
 
-        if forward:
-            hero_coords[0] += speed / FPS
-        elif back:
-            hero_coords[0] -= speed / FPS
-        hero.rect.x = int(hero_coords[0])
-        hero.rect.y = int(hero_coords[1])
         screen.fill((0, 0, 0))
         camera.update(hero)
         camera.apply(background_sprite)
         screen.blit(pygame.transform.scale(background_sprite.image,
                                            background_sprite.rect.size),
                     (background_sprite.rect.x, background_sprite.rect.y))
+
         for block in blocks:
-            camera.apply(block)
-            current_block = pygame.transform.scale(block.image, block.rect.size)
-            screen.blit(current_block, (block.rect.x, block.rect.y))
+                    # camera.apply(block)
+            # current_block = pygame.transform.scale(block.image, block.rect.size)
+            # screen.blit(current_block, (block.rect.x, block.rect.y))
+            if block.image != 0:
+                screen.blit(block.image, camera.apply(block))
+        if forward:
+            hero_coords[0] += speed / FPS
+        elif back:
+            hero_coords[0] -= speed / FPS
+        hero.rect.x = int(hero_coords[0])
+        hero.rect.y = int(hero_coords[1])
+        # blocks.draw(screen)
         hero.update()
         screen.blit(hero.image, (hero.rect.x + width // 2, hero.rect.y + height // 2))
         # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
         #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
-        clock.tick(FPS * 8)
+        clock.tick(FPS * 4)
         pygame.display.flip()
