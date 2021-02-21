@@ -3,7 +3,6 @@ import sys
 import os
 from math import ceil
 
-
 all_sprites = pygame.sprite.Group()
 FPS = 100
 
@@ -86,8 +85,8 @@ class Camera:
 
     # Позиционировать камеру на объекте target
     def update(self, target):
-        self.dx = (-target.rect.centerx + width // 2)
-        self.dy = (-target.rect.centery + height // 2)
+        self.dx = -target.rect.x - display_size[0] // 96
+        self.dy = -target.rect.y - field_size[1] // 4.5 + 2
 
 
 def terminate():
@@ -114,11 +113,13 @@ def load_image(name, color_key=None):
 if __name__ == '__main__':
     pygame.init()
     display_size = width, height = pygame.display.Info().current_w, pygame.display.Info().current_h
+    print(display_size)
     field_size = 2528, 1728
-    screen = pygame.display.set_mode((1500, 1000))
+    # screen = pygame.display.set_mode((1500, 1000))
+    screen = pygame.display.set_mode(display_size)
     background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
-    hero_coords = [0, 0]
+    hero_coords = [0, display_size[0] // 2]
     hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     jump = False
     file = open('data/map.txt')
     text = file.read()
-    speed = 420
+    speed = 100
     camera = Camera()
     running = True
     blocks = pygame.sprite.Group()
@@ -197,8 +198,7 @@ if __name__ == '__main__':
                 block_pic = pygame.transform.scale(load_image('blocks\\' + block_name), block_size)
             else:
                 block_pic = 0
-            blocks.add(Block(block_pic, (j * 32, i * 32), block_size))
-    print(blocks.sprites()[8 * 80 + 2].rect)
+            Block(block_pic, (j * 32, i * 32), block_size)
     while running:
         background_sprite = Background(background, (0, 0), field_size)
         for event in pygame.event.get():
@@ -222,8 +222,9 @@ if __name__ == '__main__':
                         hero = hero_jump_left
                     jump = True
                 for block in blocks:
-                    print(hero_coords)
-                    if pygame.sprite.collide_rect(hero, block): # если есть пересечение платформы с игроком
+                    # print(hero_coords, [block.rect.x, block.rect.y])
+                    if pygame.sprite.collide_rect(hero, block):
+                        print(1)
                         if hero_coords[0] > block.rect.x:
                             back = False
                         elif hero_coords[0] < block.rect.x:
@@ -254,9 +255,6 @@ if __name__ == '__main__':
         # top = blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.w, \
         #       blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.h
         # print(bottom, top)
-
-
-
 
         if hero == hero_jump_right:
             if jump_cnt == 2 or jump_cnt == 1:
@@ -298,7 +296,7 @@ if __name__ == '__main__':
                     (background_sprite.rect.x, background_sprite.rect.y))
 
         for block in blocks:
-                    # camera.apply(block)
+            # camera.apply(block)
             # current_block = pygame.transform.scale(block.image, block.rect.size)
             # screen.blit(current_block, (block.rect.x, block.rect.y))
             if block.image != 0:
@@ -311,8 +309,9 @@ if __name__ == '__main__':
         hero.rect.y = int(hero_coords[1])
         # blocks.draw(screen)
         hero.update()
-        screen.blit(hero.image, (hero.rect.x + width // 2, hero.rect.y + height // 2))
+        screen.blit(hero.image, (hero.rect.x, hero.rect.y))
+        print(hero.rect.x, hero.rect.y)
         # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
         #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
-        clock.tick(FPS * 4)
+        clock.tick(FPS)
         pygame.display.flip()
