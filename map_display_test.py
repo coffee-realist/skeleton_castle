@@ -119,7 +119,7 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(display_size)
     background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
-    hero_coords = [0, display_size[0] // 2]
+    hero_coords = [32, display_size[0] // 2]
     hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
@@ -134,10 +134,12 @@ if __name__ == '__main__':
     jump = False
     file = open('data/map.txt')
     text = file.read()
-    speed = 100
+    speed = 200
     camera = Camera()
     running = True
     blocks = pygame.sprite.Group()
+    run_accept_right = True
+    run_accept_left = True
     for i, row in enumerate(text.split('\n')):
         for j, block in enumerate(row):
             block_name = 'something_wrong.png'
@@ -205,12 +207,13 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and hero != hero_jump_right:
+
+                if event.key == pygame.K_LEFT and hero != hero_jump_right and run_accept_left:
                     hero = hero_left
                     hero_vector = 'left'
                     forward = False
                     back = True
-                elif event.key == pygame.K_RIGHT and hero != hero_jump_right:
+                elif event.key == pygame.K_RIGHT and hero != hero_jump_right and run_accept_right:
                     hero = hero_right
                     hero_vector = 'right'
                     forward = True
@@ -221,26 +224,6 @@ if __name__ == '__main__':
                     else:
                         hero = hero_jump_left
                     jump = True
-                for block in blocks:
-                    # print(hero_coords, [block.rect.x, block.rect.y])
-                    if pygame.sprite.collide_rect(hero, block):
-                        print(1)
-                        if hero_coords[0] > block.rect.x:
-                            back = False
-                        elif hero_coords[0] < block.rect.x:
-                            forward = False
-                        elif hero_coords[0] > block.rect.x:
-                            pass
-                        elif hero_coords[0] > block.rect.x:
-                            pass
-                        elif hero_coords[0] > block.rect.x:
-                            pass
-                        elif hero_coords[0] > block.rect.x:
-                            pass
-                        elif hero_coords[0] > block.rect.x:
-                            pass
-                        elif hero_coords[0] > block.rect.x:
-                            pass
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     hero = hero_stand_left
@@ -248,6 +231,18 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_RIGHT:
                     hero = hero_stand_right
                     forward = False
+        for block in blocks:
+            if pygame.sprite.collide_rect(hero, block):
+                print(1)
+                if hero_coords[0] > block.rect.x:
+                    back = False
+                    run_accept_left = False
+                elif hero_coords[0] < block.rect.x:
+                    forward = False
+                    run_accept_right = False
+            else:
+                run_accept_left = True
+                run_accept_right = True
         # cell_x = ceil(hero_coords[0] / 32) + 16
         # cell_y = ceil(hero_coords[1]  / 32) + 10
         # bottom = blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.w, \
@@ -288,6 +283,13 @@ if __name__ == '__main__':
                 jump = False
             jump_cnt += 1
 
+        if forward:
+            hero_coords[0] += speed / FPS
+        elif back:
+            hero_coords[0] -= speed / FPS
+        hero.rect.x = int(hero_coords[0])
+        hero.rect.y = int(hero_coords[1])
+        hero.update()
         screen.fill((0, 0, 0))
         camera.update(hero)
         camera.apply(background_sprite)
@@ -301,16 +303,8 @@ if __name__ == '__main__':
             # screen.blit(current_block, (block.rect.x, block.rect.y))
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
-        if forward:
-            hero_coords[0] += speed / FPS
-        elif back:
-            hero_coords[0] -= speed / FPS
-        hero.rect.x = int(hero_coords[0])
-        hero.rect.y = int(hero_coords[1])
-        # blocks.draw(screen)
-        hero.update()
+
         screen.blit(hero.image, (hero.rect.x, hero.rect.y))
-        print(hero.rect.x, hero.rect.y)
         # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
         #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
         clock.tick(FPS)
