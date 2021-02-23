@@ -140,6 +140,7 @@ if __name__ == '__main__':
     blocks = pygame.sprite.Group()
     run_accept_right = True
     run_accept_left = True
+    fall = True
     for i, row in enumerate(text.split('\n')):
         for j, block in enumerate(row):
             block_name = 'something_wrong.png'
@@ -237,15 +238,18 @@ if __name__ == '__main__':
                 if hero_coords[0] > block.rect.x:
                     back = False
                     run_accept_left = False
-                elif hero_coords[0] < block.rect.x:
+                elif hero_coords[0] + 32 < block.rect.x:
                     forward = False
                     run_accept_right = False
-                elif hero_coords[1] > block.rect.y:
+                if hero_coords[1] + 64 > block.rect.y:
                     fall = False
+                elif hero_coords[1] < block.rect.y:
+                    jump = False
+                    jump_cnt = 0
+                    fall = True
             else:
                 run_accept_left = True
                 run_accept_right = True
-                fall = True
         # cell_x = ceil(hero_coords[0] / 32) + 16
         # cell_y = ceil(hero_coords[1]  / 32) + 10
         # bottom = blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.w, \
@@ -255,10 +259,6 @@ if __name__ == '__main__':
         # print(bottom, top)
 
         if hero == hero_jump_right:
-            if jump_cnt == 2 or jump_cnt == 1:
-                hero_coords[1] -= 32
-            elif jump_cnt == 5 or jump_cnt == 4:
-                hero_coords[1] += 32
             if jump_cnt == 5:
                 jump_cnt = 0
                 if forward:
@@ -269,13 +269,13 @@ if __name__ == '__main__':
                     hero = hero_stand_right
                 jump_cnt = 0
                 jump = False
+                fall = True
+            else:
+                hero_coords[1] -= 16
             jump_cnt += 1
         if hero == hero_jump_left:
-            if jump_cnt == 2 or jump_cnt == 1:
-                hero_coords[1] -= 32
-            elif jump_cnt == 5 or jump_cnt == 4:
-                hero_coords[1] += 32
             if jump_cnt == 5:
+                jump_cnt = 0
                 if forward:
                     hero = hero_right
                 elif back:
@@ -284,6 +284,9 @@ if __name__ == '__main__':
                     hero = hero_stand_left
                 jump_cnt = 0
                 jump = False
+                fall = True
+            else:
+                hero_coords[1] -= 16
             jump_cnt += 1
 
         if forward:
