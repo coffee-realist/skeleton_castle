@@ -240,9 +240,12 @@ if __name__ == '__main__':
                 elif hero_coords[0] < block.rect.x:
                     forward = False
                     run_accept_right = False
+                elif hero_coords[1] > block.rect.y:
+                    fall = False
             else:
                 run_accept_left = True
                 run_accept_right = True
+                fall = True
         # cell_x = ceil(hero_coords[0] / 32) + 16
         # cell_y = ceil(hero_coords[1]  / 32) + 10
         # bottom = blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.w, \
@@ -287,6 +290,8 @@ if __name__ == '__main__':
             hero_coords[0] += speed / FPS
         elif back:
             hero_coords[0] -= speed / FPS
+        elif fall:
+            hero_coords[1] += speed / FPS
         hero.rect.x = int(hero_coords[0])
         hero.rect.y = int(hero_coords[1])
         hero.update()
