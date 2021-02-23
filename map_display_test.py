@@ -140,6 +140,7 @@ if __name__ == '__main__':
     blocks = pygame.sprite.Group()
     run_accept_right = True
     run_accept_left = True
+    jump_accept = True
     fall = True
     for i, row in enumerate(text.split('\n')):
         for j, block in enumerate(row):
@@ -203,12 +204,12 @@ if __name__ == '__main__':
                 block_pic = 0
             Block(block_pic, (j * 32, i * 32), block_size)
     while running:
+        fall = True
         background_sprite = Background(background, (0, 0), field_size)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
-
                 if event.key == pygame.K_LEFT and hero != hero_jump_right and run_accept_left:
                     hero = hero_left
                     hero_vector = 'left'
@@ -219,7 +220,7 @@ if __name__ == '__main__':
                     hero_vector = 'right'
                     forward = True
                     back = False
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_UP and jump_accept:
                     if hero_vector == 'right':
                         hero = hero_jump_right
                     else:
@@ -233,21 +234,24 @@ if __name__ == '__main__':
                     hero = hero_stand_right
                     forward = False
         for block in blocks:
-            if pygame.sprite.collide_rect(hero, block):
+            if block.image != 0 and pygame.sprite.collide_rect(hero, block):
                 print(1)
-                if hero_coords[0] > block.rect.x:
+                if hero_coords[0] + 32 > block.rect.x and (
+                        hero_coords[1] + 63 <= block.rect.y or hero_coords[1] > block.rect.y):
                     back = False
                     run_accept_left = False
-                elif hero_coords[0] + 32 < block.rect.x:
+                elif hero_coords[0] < block.rect.x and (
+                        hero_coords[1] + 63 <= block.rect.y or hero_coords[1] > block.rect.y):
                     forward = False
                     run_accept_right = False
                 if hero_coords[1] + 64 > block.rect.y:
                     fall = False
-                elif hero_coords[1] < block.rect.y:
-                    jump = False
-                    jump_cnt = 0
-                    fall = True
+                    jump_accept = True
             else:
+                # if block.image != 0 and hero_coords[1] < block.rect.y or hero_coords[1] + 16 < block.rect.y:
+                #     jump = False
+                #     jump_cnt = 0
+                #     fall = True
                 run_accept_left = True
                 run_accept_right = True
         # cell_x = ceil(hero_coords[0] / 32) + 16
@@ -258,7 +262,7 @@ if __name__ == '__main__':
         #       blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.h
         # print(bottom, top)
 
-        if hero == hero_jump_right:
+        if hero == hero_jump_right and jump_accept:
             if jump_cnt == 5:
                 jump_cnt = 0
                 if forward:
@@ -268,12 +272,13 @@ if __name__ == '__main__':
                 else:
                     hero = hero_stand_right
                 jump_cnt = 0
+                jump_accept = False
                 jump = False
                 fall = True
             else:
                 hero_coords[1] -= 16
             jump_cnt += 1
-        if hero == hero_jump_left:
+        if hero == hero_jump_left and jump_accept:
             if jump_cnt == 5:
                 jump_cnt = 0
                 if forward:
@@ -283,6 +288,7 @@ if __name__ == '__main__':
                 else:
                     hero = hero_stand_left
                 jump_cnt = 0
+                jump_accept = False
                 jump = False
                 fall = True
             else:
@@ -293,8 +299,8 @@ if __name__ == '__main__':
             hero_coords[0] += speed / FPS
         elif back:
             hero_coords[0] -= speed / FPS
-        elif fall:
-            hero_coords[1] += speed / FPS
+        if fall:
+            hero_coords[1] += (speed * 2) / FPS
         hero.rect.x = int(hero_coords[0])
         hero.rect.y = int(hero_coords[1])
         hero.update()
