@@ -151,8 +151,8 @@ if __name__ == '__main__':
     start_screen()
     background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
-    default_coords = [32, display_size[0] // 2]
-    hero_coords = default_coords
+    default_hero_coords = [32, display_size[0] // 2]
+    hero_coords = default_hero_coords.copy()
     hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
     hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
@@ -280,8 +280,8 @@ if __name__ == '__main__':
                     forward = False
                     back = False
                     jump_accept = False
-                elif block.rect.w < 32 or block.rect.h < 32:
-                    default_coords = [291, -168.0]
+                elif block.rect.w < 32 and block.rect.h < 32:
+                    default_hero_coords = [20 * 32, 1000]
                 elif hero_coords[0] + 32 > block.rect.x and (
                         hero_coords[1] + 67 <= block.rect.y or hero_coords[1] > block.rect.y):
                     back = False
@@ -341,8 +341,8 @@ if __name__ == '__main__':
                 dead_cnt = 0
                 dead = False
                 hero = hero_stand_right
-                hero_coords[0] = default_coords[0]
-                hero_coords[1] = default_coords[1]
+                hero_coords = default_hero_coords.copy()
+
         else:
             if forward:
                 hero_coords[0] += speed / FPS
@@ -351,10 +351,9 @@ if __name__ == '__main__':
             if forward and (jump or fall):
                 hero_coords[0] += speed / FPS * 1.5
             elif back and (jump or fall):
-                    hero_coords[0] -= speed / FPS * 1.5
+                hero_coords[0] -= speed / FPS * 1.5
             if fall:
                 hero_coords[1] += (speed * 2) / FPS
-
 
         hero.rect.x = int(hero_coords[0])
         hero.rect.y = int(hero_coords[1])
@@ -369,8 +368,9 @@ if __name__ == '__main__':
         for block in blocks:
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
-        print(hero_coords[0], hero_coords[1])
+        print(default_hero_coords)
         screen.blit(hero.image, (hero.rect.x, hero.rect.y))
+
         # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
         #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
         clock.tick(FPS)
