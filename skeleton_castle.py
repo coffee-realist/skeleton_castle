@@ -11,6 +11,7 @@ ABOUT_WINDOW_SIZE = 1023, 649
 GAME_WINDOW_SIZE = 1280, 720
 WINDOW_STATE = 0
 
+
 # обьявляем класс анимированных спрайтов
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
@@ -36,15 +37,16 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
+
 # обьявляем класс блоков
 class Block(pygame.sprite.Sprite):
     def __init__(self, image, default_coordinates, size):
         super(Block, self).__init__(blocks)
-        pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.default_coordinates = default_coordinates
         self.size = size
         self.rect = pygame.Rect(self.default_coordinates, self.size)
+
 
 # обьявляем класс для фона
 class Background(pygame.sprite.Sprite):
@@ -54,6 +56,7 @@ class Background(pygame.sprite.Sprite):
         self.default_coordinates = default_coordinates
         self.size = size
         self.rect = pygame.Rect(self.default_coordinates, self.size)
+
 
 # обьявляем класс главного героя
 class Player(pygame.sprite.Sprite):
@@ -80,6 +83,7 @@ class Player(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
+
 # обьявляем класс камеры
 class Camera:
     def __init__(self):
@@ -97,10 +101,12 @@ class Camera:
         self.dx = -target.rect.x + 32
         self.dy = -target.rect.y + display_size[1] // 2 - 64
 
+
 # функция выхода из игры
 def terminate():
     pygame.quit()
     sys.exit()
+
 
 # функция загрузки изображения
 def load_image(name, color_key=None):
@@ -118,6 +124,7 @@ def load_image(name, color_key=None):
         image = image.convert_alpha()
     return image
 
+
 # функция вызывающая меню
 def start_screen():
     global screen, WINDOW_STATE
@@ -131,7 +138,7 @@ def start_screen():
             if screen_event.type == pygame.QUIT:
                 terminate()
             elif screen_event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos
+                x, y = screen_event.pos
                 if WINDOW_STATE == 0:
                     # запускаем основной игровой цикл
                     if 1070 <= x <= 1230 and 225 <= y <= 260:
@@ -424,6 +431,7 @@ if __name__ == '__main__':
                     (background_sprite.rect.x, background_sprite.rect.y))
         # отрисовка блоков
         for block in blocks:
+
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
         # отрисовка персонажа
