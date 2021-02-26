@@ -80,13 +80,13 @@ class Camera:
         self.dy = 0
 
     def apply(self, obj):
-        obj.rect.x = obj.default_coords[0] + self.dx // 2
-        obj.rect.y = obj.default_coords[1] + self.dy // 2
+        obj.rect.x = obj.default_coords[0] + self.dx
+        obj.rect.y = obj.default_coords[1] + self.dy
         return obj.rect.x, obj.rect.y
 
     def update(self, target):
-        self.dx = -target.rect.x - display_size[0] // 96
-        self.dy = -target.rect.y - field_size[1] // 4.5 + 2
+        self.dx = -target.rect.x + 32
+        self.dy = -target.rect.y + display_size[1] // 2 - 64
 
 
 def terminate():
@@ -141,28 +141,25 @@ def start_screen():
         pygame.display.flip()
 
 
-
 if __name__ == '__main__':
     pygame.init()
     display_size = width, height = pygame.display.Info().current_w, pygame.display.Info().current_h
-    print(display_size)
     field_size = 2528, 1728
-    # screen = pygame.display.set_mode((1500, 1000))
     screen = pygame.display.set_mode(display_size)
     background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
     start_screen()
-    default_hero_coords = [32, display_size[0] // 2]
+    default_hero_coords = [32, display_size[0] // 2 - 64]
     hero_coords = default_hero_coords.copy()
-    hero_right = AnimatedSprite(load_image("heroes/hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
-    hero_left = AnimatedSprite(load_image("heroes/hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
-    hero_dead = AnimatedSprite(load_image("heroes/hero_dead_right.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_stand_right = AnimatedSprite(load_image("heroes/hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
-    hero_stand_left = AnimatedSprite(load_image("heroes/hero_stand_left.png"), 1, 1, hero_coords[0], hero_coords[1])
-    hero_jump_right = AnimatedSprite(load_image("heroes/hero_jump_right.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_jump_left = AnimatedSprite(load_image("heroes/hero_jump_left.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_fall_right = AnimatedSprite(load_image("heroes/hero_fall_right.png"), 1, 1, hero_coords[0], hero_coords[1])
-    hero_fall_left = AnimatedSprite(load_image("heroes/hero_fall_left.png"), 1, 1, hero_coords[0], hero_coords[1])
+    hero_right = AnimatedSprite(load_image("heroes\\hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
+    hero_left = AnimatedSprite(load_image("heroes\\hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
+    hero_dead = AnimatedSprite(load_image("heroes\\hero_dead_right.png"), 5, 1, hero_coords[0], hero_coords[1])
+    hero_stand_right = AnimatedSprite(load_image("heroes\\hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
+    hero_stand_left = AnimatedSprite(load_image("heroes\\hero_stand_left.png"), 1, 1, hero_coords[0], hero_coords[1])
+    hero_jump_right = AnimatedSprite(load_image("heroes\\hero_jump_right.png"), 5, 1, hero_coords[0], hero_coords[1])
+    hero_jump_left = AnimatedSprite(load_image("heroes\\hero_jump_left.png"), 5, 1, hero_coords[0], hero_coords[1])
+    hero_fall_right = AnimatedSprite(hero_jump_right.frames[4], 1, 1, hero_coords[0], hero_coords[1])
+    hero_fall_left = AnimatedSprite(hero_jump_left.frames[4], 1, 1, hero_coords[0], hero_coords[1])
 
     hero = hero_stand_right
     hero_vector = 'right'
@@ -172,7 +169,7 @@ if __name__ == '__main__':
     forward = False
     back = False
     jump = False
-    file = open('data/map.txt')
+    file = open('data\\map.txt')
     text = file.read()
     speed = 200
     camera = Camera()
@@ -246,6 +243,9 @@ if __name__ == '__main__':
                 block_pic = 0
             Block(block_pic, (j * 32, i * 32), block_size)
     while running:
+        if 1250 <= hero.rect.x <= 1300 and 250 <= hero.rect.y <= 300:
+            print('Поздравляем, вы выбрались из лабиринта!')
+            quit()
         fall = True
         run_accept_right = True
         run_accept_left = True
@@ -279,8 +279,7 @@ if __name__ == '__main__':
                     forward = False
         for block in blocks:
             if block.image != 0 and pygame.sprite.collide_rect(hero, block):
-                print(1)
-                if block.rect.w > 32 or block.rect.h > 32 and hero_coords[0] + 40 > block.rect.x\
+                if block.rect.w > 32 or block.rect.h > 32 and hero_coords[0] + 40 > block.rect.x \
                         and hero_coords[0] < block.rect.x + 32:
                     hero = hero_dead
                     dead = True
@@ -288,7 +287,7 @@ if __name__ == '__main__':
                     back = False
                     jump_accept = False
                 elif block.rect.w < 32 and block.rect.h < 32:
-                    default_hero_coords = [20 * 32, 1000]
+                    default_hero_coords = [64, 512]
                     double_jump = True
                 if hero_coords[0] > block.rect.x and (
                         hero_coords[1] + 63 <= block.rect.y or hero_coords[1] > block.rect.y):
@@ -302,7 +301,7 @@ if __name__ == '__main__':
                     run_accept_right = False
                 else:
                     run_accept_right = True
-                if hero_coords[1] + 65 > block.rect.y and hero_coords[0] + 34 > block.rect.x\
+                if hero_coords[1] + 65 > block.rect.y and hero_coords[0] + 34 > block.rect.x \
                         and hero_coords[0] < block.rect.x + 45:
                     fall = False
                     jump_accept = True
@@ -311,15 +310,6 @@ if __name__ == '__main__':
                         hero = hero_stand_right
                     else:
                         hero = hero_stand_left
-
-
-        # cell_x = ceil(hero_coords[0] / 32) + 16
-        # cell_y = ceil(hero_coords[1]  / 32) + 10
-        # bottom = blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.w, \
-        #          blocks.sprites()[(cell_y + 1) * 80 + cell_x].rect.h
-        # top = blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.w, \
-        #       blocks.sprites()[(cell_y - 1) * 80 + cell_x].rect.h
-        # print(bottom, top)
 
         if jump and jump_accept:
             fall = False
@@ -347,7 +337,6 @@ if __name__ == '__main__':
                 hero_coords[1] -= 17
             jump_cnt += 1
 
-
         if dead:
             dead_cnt += 1
             if dead_cnt == 4:
@@ -357,7 +346,7 @@ if __name__ == '__main__':
                 hero_coords = default_hero_coords.copy()
 
         else:
-            if forward and not(jump or fall):
+            if forward and not (jump or fall):
                 hero = hero_right
                 hero_coords[0] += speed / FPS
                 double_cnt = 0
@@ -391,12 +380,8 @@ if __name__ == '__main__':
                     (background_sprite.rect.x, background_sprite.rect.y))
 
         for block in blocks:
-            # camera.apply(block)
-            # current_block = pygame.transform.scale(block.image, block.rect.size)
-            # screen.blit(current_block, (block.rect.x, block.rect.y))
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
-
         screen.blit(hero.image, (hero.rect.x, hero.rect.y))
         # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
         #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
