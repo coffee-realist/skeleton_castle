@@ -1,7 +1,9 @@
+# подключаем нужные для работы библиотеки
 import pygame
 import sys
 import os
 
+# обьявляем основные переменные
 all_sprites = pygame.sprite.Group()
 FPS = 100
 INTRO_WINDOW_SIZE = 1280, 720
@@ -9,7 +11,7 @@ ABOUT_WINDOW_SIZE = 1023, 649
 GAME_WINDOW_SIZE = 1280, 720
 WINDOW_STATE = 0
 
-
+# обьявляем класс анимированных спрайтов
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
@@ -19,38 +21,41 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
 
+    # нарезаем спрайты
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
+        for current_row in range(rows):
+            for current_column in range(columns):
+                frame_location = (self.rect.w * current_column, self.rect.h * current_row)
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
+    # изменяем текущий спрайт персонажа
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
-
+# обьявляем класс блоков
 class Block(pygame.sprite.Sprite):
-    def __init__(self, image, default_coords, size):
+    def __init__(self, image, default_coordinates, size):
         super(Block, self).__init__(blocks)
+        pygame.sprite.Sprite.__init__(self)
         self.image = image
-        self.default_coords = default_coords
+        self.default_coordinates = default_coordinates
         self.size = size
-        self.rect = pygame.Rect(self.default_coords, self.size)
+        self.rect = pygame.Rect(self.default_coordinates, self.size)
 
-
+# обьявляем класс для фона
 class Background(pygame.sprite.Sprite):
-    def __init__(self, image, default_coords, size):
+    def __init__(self, image, default_coordinates, size):
         super(Background, self).__init__()
         self.image = image
-        self.default_coords = default_coords
+        self.default_coordinates = default_coordinates
         self.size = size
-        self.rect = pygame.Rect(self.default_coords, self.size)
+        self.rect = pygame.Rect(self.default_coordinates, self.size)
 
-
+# обьявляем класс главного героя
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
@@ -60,40 +65,44 @@ class Player(pygame.sprite.Sprite):
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
 
+    # режем спрайты
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
+        for player_row in range(rows):
+            for player_column in range(columns):
+                frame_location = (self.rect.w * player_column, self.rect.h * player_row)
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
+    # обновляем спрайт
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
 
-
+# обьявляем класс камеры
 class Camera:
     def __init__(self):
         self.dx = 0
         self.dy = 0
 
+    # расчитываем смещение всех блоков относительно персонажа
     def apply(self, obj):
-        obj.rect.x = obj.default_coords[0] + self.dx
-        obj.rect.y = obj.default_coords[1] + self.dy
+        obj.rect.x = obj.default_coordinates[0] + self.dx
+        obj.rect.y = obj.default_coordinates[1] + self.dy
         return obj.rect.x, obj.rect.y
 
+    # применяем смещение к блоку
     def update(self, target):
         self.dx = -target.rect.x + 32
         self.dy = -target.rect.y + display_size[1] // 2 - 64
 
-
+# функция выхода из игры
 def terminate():
     pygame.quit()
     sys.exit()
 
-
+# функция загрузки изображения
 def load_image(name, color_key=None):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
@@ -109,35 +118,40 @@ def load_image(name, color_key=None):
         image = image.convert_alpha()
     return image
 
-
+# функция вызывающая меню
 def start_screen():
     global screen, WINDOW_STATE
-    background = pygame.transform.scale(load_image('intro.jpg'), INTRO_WINDOW_SIZE)
+    # отрисовываем фон главного меню
+    intro_background = pygame.transform.scale(load_image('intro.jpg'), INTRO_WINDOW_SIZE)
     screen = pygame.display.set_mode(INTRO_WINDOW_SIZE)
-    screen.blit(background, (0, 0))
+    screen.blit(intro_background, (0, 0))
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        # проверяем координаты нажатия мышью
+        for screen_event in pygame.event.get():
+            if screen_event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif screen_event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if WINDOW_STATE == 0:
+                    # запускаем основной игровой цикл
                     if 1070 <= x <= 1230 and 225 <= y <= 260:
                         screen = pygame.display.set_mode(display_size)
                         return
+                    # выходим из игры
                     elif 1090 <= x <= 1205 and 450 <= y <= 485:
                         terminate()
+                    # заходим в раздел ABOUT
                     elif 1050 <= x <= 1230 and 375 <= y <= 410:
                         screen = pygame.display.set_mode(ABOUT_WINDOW_SIZE)
-                        background = pygame.transform.scale(load_image('about.jpg'), ABOUT_WINDOW_SIZE)
-                        screen.blit(background, (0, 0))
+                        intro_background = pygame.transform.scale(load_image('about.jpg'), ABOUT_WINDOW_SIZE)
+                        screen.blit(intro_background, (0, 0))
                         WINDOW_STATE = 1
                 elif WINDOW_STATE == 1:
                     if 25 <= x <= 160 and 25 <= y <= 165:
                         WINDOW_STATE = 0
                         screen = pygame.display.set_mode(INTRO_WINDOW_SIZE)
-                        background = pygame.transform.scale(load_image('intro.jpg'), INTRO_WINDOW_SIZE)
-                        screen.blit(background, (0, 0))
+                        intro_background = pygame.transform.scale(load_image('intro.jpg'), INTRO_WINDOW_SIZE)
+                        screen.blit(intro_background, (0, 0))
         pygame.display.flip()
 
 
@@ -149,18 +163,28 @@ if __name__ == '__main__':
     background = pygame.transform.scale(load_image('background.jpg'), field_size)
     clock = pygame.time.Clock()
     start_screen()
-    default_hero_coords = [32, display_size[0] // 2 - 64]
-    hero_coords = default_hero_coords.copy()
-    hero_right = AnimatedSprite(load_image("heroes\\hero_run_right.png"), 8, 1, hero_coords[0], hero_coords[1])
-    hero_left = AnimatedSprite(load_image("heroes\\hero_run_left.png"), 8, 1, hero_coords[0], hero_coords[1])
-    hero_dead = AnimatedSprite(load_image("heroes\\hero_dead_right.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_stand_right = AnimatedSprite(load_image("heroes\\hero_stand_right.png"), 1, 1, hero_coords[0], hero_coords[1])
-    hero_stand_left = AnimatedSprite(load_image("heroes\\hero_stand_left.png"), 1, 1, hero_coords[0], hero_coords[1])
-    hero_jump_right = AnimatedSprite(load_image("heroes\\hero_jump_right.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_jump_left = AnimatedSprite(load_image("heroes\\hero_jump_left.png"), 5, 1, hero_coords[0], hero_coords[1])
-    hero_fall_right = AnimatedSprite(hero_jump_right.frames[4], 1, 1, hero_coords[0], hero_coords[1])
-    hero_fall_left = AnimatedSprite(hero_jump_left.frames[4], 1, 1, hero_coords[0], hero_coords[1])
-
+    default_hero_coordinates = [32, display_size[0] // 2 - 64]
+    # подготавливаем спрайты всех действий
+    hero_coordinates = default_hero_coordinates.copy()
+    hero_right = AnimatedSprite(load_image("heroes\\hero_run_right.png"),
+                                8, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_left = AnimatedSprite(load_image("heroes\\hero_run_left.png"),
+                               8, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_dead = AnimatedSprite(load_image("heroes\\hero_dead_right.png"),
+                               5, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_stand_right = AnimatedSprite(load_image("heroes\\hero_stand_right.png"),
+                                      1, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_stand_left = AnimatedSprite(load_image("heroes\\hero_stand_left.png"),
+                                     1, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_jump_right = AnimatedSprite(load_image("heroes\\hero_jump_right.png"),
+                                     5, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_jump_left = AnimatedSprite(load_image("heroes\\hero_jump_left.png"),
+                                    5, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_fall_right = AnimatedSprite(hero_jump_right.frames[4],
+                                     1, 1, hero_coordinates[0], hero_coordinates[1])
+    hero_fall_left = AnimatedSprite(hero_jump_left.frames[4],
+                                    1, 1, hero_coordinates[0], hero_coordinates[1])
+    # обьявляем нужные переменные
     hero = hero_stand_right
     hero_vector = 'right'
     dead = False
@@ -181,6 +205,7 @@ if __name__ == '__main__':
     double_cnt = 0
     fall = True
     double_jump = False
+    # запускаем цикл обработки карты из текстового файла
     for i, row in enumerate(text.split('\n')):
         for j, block in enumerate(row):
             block_name = 'something_wrong.png'
@@ -217,7 +242,7 @@ if __name__ == '__main__':
                 block_name = 'left_spikes_block.png'
                 block_size = [34, 32]
             elif block == '#':
-                block_name = 'strange_splited_blue_block.png'
+                block_name = 'strange_divided_blue_block.png'
                 block_size = [32, 32]
             elif block == 'f':
                 block_name = 'flag.png'
@@ -242,7 +267,9 @@ if __name__ == '__main__':
             else:
                 block_pic = 0
             Block(block_pic, (j * 32, i * 32), block_size)
+    # запускаем игровой цикл
     while running:
+        # проверяем координаты персонажа на выигрышь
         if 1250 <= hero.rect.x <= 1300 and 250 <= hero.rect.y <= 300:
             print('Поздравляем, вы выбрались из лабиринта!')
             quit()
@@ -250,59 +277,74 @@ if __name__ == '__main__':
         run_accept_right = True
         run_accept_left = True
         background_sprite = Background(background, (0, 0), field_size)
+        # запускаем проверку нажатий клавишь
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
+                # нажатие стрелки влево
                 if event.key == pygame.K_LEFT and hero != hero_jump_right and run_accept_left:
                     hero = hero_left
                     hero_vector = 'left'
                     forward = False
                     back = True
+                # нажатие стрелки вправо
                 elif event.key == pygame.K_RIGHT and hero != hero_jump_right and run_accept_right:
                     hero = hero_right
                     hero_vector = 'right'
                     forward = True
                     back = False
+                # нажатие стрелки вверх
                 elif event.key == pygame.K_UP and jump_accept:
                     if hero_vector == 'right':
                         hero = hero_jump_right
                     else:
                         hero = hero_jump_left
                     jump = True
+            # проверяем отжатия клавиш
             elif event.type == pygame.KEYUP:
+                # отжата стрелка влево
                 if event.key == pygame.K_LEFT:
                     hero = hero_stand_left
                     back = False
+                # отжата стрелка вправо
                 elif event.key == pygame.K_RIGHT:
                     hero = hero_stand_right
                     forward = False
+        # запускаем проверку коллизии персонажа и блоков
         for block in blocks:
             if block.image != 0 and pygame.sprite.collide_rect(hero, block):
-                if block.rect.w > 32 or block.rect.h > 32 and hero_coords[0] + 40 > block.rect.x \
-                        and hero_coords[0] < block.rect.x + 32:
+                # столкновение с шипами
+                if block.rect.w > 32 or block.rect.h > 32 and hero_coordinates[0] + 40 > block.rect.x \
+                        and hero_coordinates[0] < block.rect.x + 32:
                     hero = hero_dead
                     dead = True
                     forward = False
                     back = False
                     jump_accept = False
+                # столкновение с чекпоинтом
                 elif block.rect.w < 32 and block.rect.h < 32:
-                    default_hero_coords = [64, 512]
+                    # изменяем координату возрождения
+                    default_hero_coordinates = [64, 512]
+                    # даем персонажу возможность двойного прыжка
                     double_jump = True
-                if hero_coords[0] > block.rect.x and (
-                        hero_coords[1] + 65 <= block.rect.y or hero_coords[1] > block.rect.y):
+                # столкновение со стенкой слева
+                if hero_coordinates[0] > block.rect.x and (
+                        hero_coordinates[1] + 65 <= block.rect.y or hero_coordinates[1] > block.rect.y):
                     back = False
                     run_accept_left = False
                 else:
                     run_accept_left = True
-                if hero_coords[0] + 32 < block.rect.x and (
-                        hero_coords[1] + 65 <= block.rect.y or hero_coords[1] > block.rect.y):
+                # столкновение со стенкой справа
+                if hero_coordinates[0] + 32 < block.rect.x and (
+                        hero_coordinates[1] + 65 <= block.rect.y or hero_coordinates[1] > block.rect.y):
                     forward = False
                     run_accept_right = False
                 else:
                     run_accept_right = True
-                if hero_coords[1] + 65 > block.rect.y and hero_coords[0] + 34 > block.rect.x \
-                        and hero_coords[0] < block.rect.x + 45:
+                # приземление на блок снизу
+                if hero_coordinates[1] + 65 > block.rect.y and hero_coordinates[0] + 34 > block.rect.x \
+                        and hero_coordinates[0] < block.rect.x + 45:
                     fall = False
                     jump_accept = True
                     double_cnt = 0
@@ -310,7 +352,7 @@ if __name__ == '__main__':
                         hero = hero_stand_right
                     else:
                         hero = hero_stand_left
-
+        # реализация прыжка
         if jump and jump_accept:
             fall = False
             double_cnt += 1
@@ -334,54 +376,57 @@ if __name__ == '__main__':
                     double_cnt = 0
 
             else:
-                hero_coords[1] -= 17
+                hero_coordinates[1] -= 17
             jump_cnt += 1
-
+        # реализация смерти
         if dead:
             dead_cnt += 1
             if dead_cnt == 4:
                 dead_cnt = 0
                 dead = False
                 hero = hero_stand_right
-                hero_coords = default_hero_coords.copy()
+                hero_coordinates = default_hero_coordinates.copy()
 
         else:
+            # реализация бега и падения
             if forward and not (jump or fall):
                 hero = hero_right
-                hero_coords[0] += speed / FPS
+                hero_coordinates[0] += speed / FPS
                 double_cnt = 0
             elif back and not (jump or fall):
                 hero = hero_left
-                hero_coords[0] -= speed / FPS
+                hero_coordinates[0] -= speed / FPS
                 double_cnt = 0
             if forward and (jump or fall):
                 hero = hero_right
-                hero_coords[0] += speed / FPS * 2.5
+                hero_coordinates[0] += speed / FPS * 2.5
                 double_cnt = 0
             elif back and (jump or fall):
                 hero = hero_left
-                hero_coords[0] -= speed / FPS * 2.5
+                hero_coordinates[0] -= speed / FPS * 2.5
                 double_cnt = 0
             if fall:
                 if hero_vector == 'right':
                     hero = hero_fall_right
                 else:
                     hero = hero_fall_left
-                hero_coords[1] += (speed * 2) / FPS
-
-        hero.rect.x = int(hero_coords[0])
-        hero.rect.y = int(hero_coords[1])
+                hero_coordinates[1] += (speed * 2) / FPS
+        # устанрвка камеры на персонаже и смещение блоков относительно него
+        hero.rect.x = int(hero_coordinates[0])
+        hero.rect.y = int(hero_coordinates[1])
         hero.update()
         screen.fill((0, 0, 0))
         camera.update(hero)
         camera.apply(background_sprite)
+        # отрисовка заднего фона
         screen.blit(pygame.transform.scale(background_sprite.image,
                                            background_sprite.rect.size),
                     (background_sprite.rect.x, background_sprite.rect.y))
-
+        # отрисовка блоков
         for block in blocks:
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
+        # отрисовка персонажа
         screen.blit(hero.image, (hero.rect.x, hero.rect.y))
         clock.tick(FPS)
         pygame.display.flip()
