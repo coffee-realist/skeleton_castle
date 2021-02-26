@@ -290,13 +290,13 @@ if __name__ == '__main__':
                     default_hero_coords = [64, 512]
                     double_jump = True
                 if hero_coords[0] > block.rect.x and (
-                        hero_coords[1] + 63 <= block.rect.y or hero_coords[1] > block.rect.y):
+                        hero_coords[1] + 65 <= block.rect.y or hero_coords[1] > block.rect.y):
                     back = False
                     run_accept_left = False
                 else:
                     run_accept_left = True
                 if hero_coords[0] + 32 < block.rect.x and (
-                        hero_coords[1] + 63 <= block.rect.y or hero_coords[1] > block.rect.y):
+                        hero_coords[1] + 65 <= block.rect.y or hero_coords[1] > block.rect.y):
                     forward = False
                     run_accept_right = False
                 else:
@@ -383,7 +383,5 @@ if __name__ == '__main__':
             if block.image != 0:
                 screen.blit(block.image, camera.apply(block))
         screen.blit(hero.image, (hero.rect.x, hero.rect.y))
-        # screen.blit(pygame.transform.scale(load_image('blocks\\shadows.png'), size),
-        #             (hero.rect.x + 100, hero.rect.y - display_size[1] // 2 + 192))
         clock.tick(FPS)
         pygame.display.flip()
